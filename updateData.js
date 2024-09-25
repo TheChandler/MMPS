@@ -20,7 +20,8 @@ async function getData() {
     const body = await response.json();
     const date = new Date().toISOString().split("T")[0]
 
-    fs.writeFileSync('./responseFiles/' + date + "_response.json", JSON.stringify(body))
+    fs.writeFileSync('./responseFiles/' + date + "_response.json", JSON.stringify(body));
+    fs.writeFileSync("./responseFiles/latest_response.json", JSON.stringify(body))
 
 
 }
