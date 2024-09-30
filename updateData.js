@@ -3,6 +3,7 @@ const fs = require('node:fs')
 const { key } = require('./googleApiKey.json')
 const sheetId = "17mOTV4LuIgdz_ui_pIzGC-vqDtIiFPXfDTh2l-r0EZA"
 
+// https://docs.google.com/spreadsheets/d/17mOTV4LuIgdz_ui_pIzGC-vqDtIiFPXfDTh2l-r0EZA/edit?gid=0#gid=0
 
 const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?alt=json&key=${key}`
 
