@@ -1,3 +1,18 @@
 .selected-item{
     background-color: #FFFAB1;
 }
+#hosts{
+    min-width: 21rem;
+}
+
+.episode-number{
+    font-size:1.5rem;
+}
+
+.episode-title{
+    font-size: 1.25rem;
+}
+
+.accordion-button::after {
+    background-image: unset !important;
+  }

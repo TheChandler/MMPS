@@ -63,6 +63,7 @@ function runBuilder() {
         podcasts.push(podcast)
     }
 
+    hosts = hosts.sort((a,b) => a.podcasts.length < b.podcasts.length)
 
     updateHostsDisplay(hosts)
     updatePodcastsDisplay(podcasts)
@@ -104,8 +105,8 @@ function createPodcastDiv(podcast) {
 
     let headerButton = document.createElement("button")
     headerButton.className = "podcast-name accordion-button collapsed"
-    headerButton.innerHTML = '<div class="flex">' +
-        `<div>${podcast.title}</div><div class="host-appearances">${podcast.episodeNumber}</div>` +
+    headerButton.innerHTML = '<div class="d-flex align-items-end gap-3">' +
+        `<div class="episode-number">${podcast.episodeNumber}</div><div class="episode-title">${podcast.title}</div>` +
         "</div>"
     headerButton.setAttribute('data-bs-toggle', "collapse")
     headerButton.setAttribute('data-bs-target', '#podcast-' + podcast.id)
@@ -120,7 +121,8 @@ function createPodcastDiv(podcast) {
 
     let body = document.createElement("div")
     body.className = "accordion-body"
-    body.innerText = "How do you do"
+    body.innerHTML = `<div><b>Date:</b> ${podcast.date} </div>
+    <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostsString}</pre></div>`
 
     bodyContainer.appendChild(body)
 
