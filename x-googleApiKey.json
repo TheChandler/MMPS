@@ -1,0 +1,5 @@
+// Include your own google api key and rename this file to "googleApiKey.json"
+
+{    
+    "key" : ""
+}
