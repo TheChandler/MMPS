@@ -16,7 +16,7 @@ async function getData() {
     let response = await fetch(url);
 
     if (response.status != 200) {
-        console.error("Error fetching data")
+        console.error("Error fetching data", response)
         return
     }
 
