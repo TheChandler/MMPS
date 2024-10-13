@@ -1,9 +1,6 @@
 .selected-item{
     background-color: #FFFAB1;
 }
-#hosts{
-    min-width: 21rem;
-}
 
 .episode-number{
     font-size:1.5rem;
@@ -19,4 +16,12 @@
 .podcast-date{
     font-size: .8rem;
     color:rgb(85, 85, 85)
+}
+
+#podcasts, #hosts{
+    max-height: 80vh;
+    
+    min-width: 21rem;
+    overflow-y: scroll;
+    scrollbar-width: thin;
 }

@@ -8,6 +8,7 @@ function setJson(value) {
 interface host {
     id: number;
     name: string;
+    nameSearch: string;
     podcasts: number[];
 }
 interface podcast {
@@ -15,12 +16,13 @@ interface podcast {
     episodeNumber: string;
     title: string;
     date: Date;
+    dateString: string;
     hostsString: string;
     hosts: number[];
 }
 
-let hosts = []
-let podcasts = []
+let hosts: host[] = []
+let podcasts: podcast[] = []
 let selectedHosts = []
 fetch('responseFiles/latest_response.json')
     .then((response) => {
@@ -36,91 +38,48 @@ function run() {
     let data = json.values
     populateData(data.slice(1))
     hosts = hosts.sort((a, b) => a.podcasts.length < b.podcasts.length ? 1 : -1)
-
-    // populateHostsData(data[0].entries())
-    // populatePodcastData(data.slice(1))
     updateHostsDisplay(hosts)
     updatePodcastsDisplay(podcasts)
     createChart()
     updateSlider()
 }
-function populateHostsData(row){
-    let startAdding = false;
-    for (const [index, value] of row) {
-        if (value == "Rolling>>>>") {
-            break;
-        }
-        if (startAdding) {
-            hosts.push({
-                id: index,
-                name: value,
-                podcasts: [],
-            })
-        }
-        if (value == "Year") {
-            startAdding = true;
-        }
-    }
-    hosts = hosts.sort((a, b) => a.podcasts.length < b.podcasts.length ? 1 : -1)
-}
-function populatePodcastData(rows){
+function populateData(rows) {
     for (const [index, rowData] of rows.entries()) {
-        if (!rowData) {
-            continue
-        }
-        console.log("Row data", rowData)
-        let podcast = {
-            id: index,
-            episodeNumber: rowData[0],
-            title: rowData[1],
-            date: rowData[2],
-            hostsString: rowData[3],
-            hosts: []
-        }
-        for (let host of hosts) {
-            // console.log(rowData[host.id])
-            if (rowData[host.id] == "1") {
-                host.podcasts.push(index)
-                podcast.hosts.push(host.id)
-            }
-        }
-        if (podcast.hosts.length > 0) {
-            podcasts.push(podcast)
-        }
-    }
-}
-function populateData(rows){
-    for (const [index, rowData] of rows.entries()) {
-        if (!rowData || rowData[3] == undefined || rowData[3] == '' ) {
+        if (!rowData || rowData[3] == undefined || rowData[3] == '') {
             continue
         }
         let podcast = {
             id: index,
             episodeNumber: rowData[0],
             title: rowData[1],
-            date: rowData[2],
+            date: new Date(rowData[2]),
+            dateString: rowData[2],
             hostsString: rowData[3],
             hosts: []
         }
         console.log(podcast)
-        for (let host of podcast.hostsString.split('\n')){
-            let hostIndex = getOrAddHostId(host)
+        for (let host of podcast.hostsString.split('\n')) {
+            let hostName = host.trim()
+            let hostIndex = getOrAddHostId(hostName)
             hosts[hostIndex].podcasts.push(index)
             podcast.hosts.push(hostIndex)
         }
         if (podcast.hosts.length > 0) {
             podcasts.push(podcast)
         }
+        podcasts = podcasts.sort((a, b) => a.date > b.date ? 1 : -1)
 
     }
 }
-function getOrAddHostId(hostName){
-    let index = hosts.findIndex(h => h.name == hostName);
-    if (index == -1){
+function getOrAddHostId(hostName) {
+    let nameSearch = hostName.trim().replace(/[\W_]+/g, "").toLowerCase();
+    let index = hosts.findIndex(h => h.nameSearch == nameSearch);
+    if (index == -1) {
         index = hosts.length;
         hosts.push({
             id: index,
             name: hostName,
+            nameSearch: nameSearch,
             podcasts: []
         })
     }
@@ -161,6 +120,8 @@ function updatePodcastsDisplay(podcasts) {
         div.appendChild(newDiv)
         // console.log("appended", newDiv)
     }
+    const count = document.getElementById('podcast-count')
+    count.innerText = podcasts.length
 }
 function createPodcastDiv(podcast) {
     //Header button
@@ -171,7 +132,7 @@ function createPodcastDiv(podcast) {
 
     let headerButton = document.createElement("button")
     headerButton.className = "podcast-name accordion-button collapsed pe-0"
-    headerButton.innerHTML = `<div><div class="podcast-date">${podcast.date}</div> <div class="d-flex align-items-end gap-3">` +
+    headerButton.innerHTML = `<div><div class="podcast-date">${podcast.dateString}</div> <div class="d-flex align-items-end gap-3">` +
         `<div class="episode-number">${podcast.episodeNumber}</div><div class="episode-title">${podcast.title}</div>` +
         "</div> </div>"
     headerButton.setAttribute('data-bs-toggle', "collapse")
@@ -189,7 +150,7 @@ function createPodcastDiv(podcast) {
     body.className = "accordion-body"
     body.innerHTML = `<div>
     <div><a target="blank" href="https://youtube.com/results/?search_query=${podcast.title}">Find it on youtube</a></div>
-    <b>Date:</b> ${podcast.date} </div>
+    <!-- <b>Date:</b> ${podcast.dateString} </div> -->
     <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostsString}</pre></div>`
 
     bodyContainer.appendChild(body)
@@ -217,28 +178,22 @@ function updateHostSelection(id) {
         console.log(podcastsFiltered.length, hostId)
         console.log(podcastsFiltered)
         podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId))
-        console.log(podcastsFiltered.length)
+        console.log(podcastsFiltered, podcastsFiltered.length)
     }
-    updatePodcastsDisplay(podcastsFiltered)
+    let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1 })
+    updatePodcastsDisplay(podcastsSorted)
 }
 
 function createChart() {
     const ctx = document.getElementById('chart-canvas');
+    let labels = podcasts.map(p => p.dateString)
 
     //@ts-ignore
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-            datasets: [{
-                label: '# of Votes',
-                data: [[1, 1], [2, 3]],
-                borderWidth: 1
-            }, {
-                label: '# of Votes',
-                data: [[1, 3], [2, 2]],
-                borderWidth: 1
-            }]
+            labels: labels,
+            datasets: getDataForDisplay()
         },
         options: {
             scales: {
@@ -251,19 +206,64 @@ function createChart() {
 }
 
 function getRangeOfDates() {
-    let sortedPodcasts = podcasts.sort((a, b) => a.date > b.date ? 1 : -1)
-    for (let podcast of podcasts) {
 
-
-    }
-    return 258
+    return podcasts.length
 }
 
-function toggleBigMode(){
+interface chartData {
+    label: string;
+    data: number[][];
+    borderWidth: number;
+    id: number;
+    currentScore: number[];
+}
+function getDataForDisplay() {
+    let dataset = createLineDatasets(8)
+    let selectedHosts = [
+        'Ben Hanson',
+        "Sarah Podzorski",
+        "Jeff Marchiafava",
+        "Jacob Geller"
+    ]
+    return dataset.filter(d => selectedHosts.some(sh => sh == d.label))
+
+}
+function createLineDatasets(windowTarget: number) {
+
+    let runningCounts: chartData[] = hosts.map(h => ({ id: h.id, label: h.name, data: [], borderWidth: 1, currentScore: [] }))
+    let window = 0;
+
+    for (let [index, podcast] of podcasts.entries()) {
+        //grow window until it reaches target size. could alternatively use index?
+        window += window < windowTarget ? 1 : 0;
+        for (let host of runningCounts) {
+            if (podcast.hosts.includes(host.id)) {
+                host.currentScore.push(1)
+            }else{
+                host.currentScore.push(0)
+            }
+            if (host.currentScore.length > window){
+                host.currentScore.shift()
+            }
+            runningCounts[host.id].data.push([index, sumArray(host.currentScore) / window])
+            if (host.label == 'Sarah Podzorski') {
+                console.log(host.currentScore, podcast.hosts.includes(host.id), )
+            }
+        }
+    }
+
+    return runningCounts
+
+}
+function sumArray(array: number[]){
+    return array.reduce((a, b)=> a+b, 0)
+}
+
+function toggleBigMode() {
     console.log("bm toggle")
     let column = document.getElementById("chart-column")
     column.classList.toggle('col-lg-4')
 
     let button = document.querySelector('#chart-column .btn')
-    button.textContent = button.textContent == 'big mode' ? 'teeny mode' : 'big mode' 
+    button.textContent = button.textContent == 'big mode' ? 'teeny mode' : 'big mode'
 }
