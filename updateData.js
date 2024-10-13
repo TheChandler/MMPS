@@ -23,14 +23,14 @@ async function getData() {
     const body = await response.json();
     
 
-    fs.writeFileSync('./responseFiles/' + date + "_response.json", JSON.stringify(body));
+//    fs.writeFileSync('./responseFiles/' + date + "_response.json", JSON.stringify(body));
     fs.writeFileSync("./responseFiles/latest_response.json", JSON.stringify(body))
 
 
 }
 execSync('git pull')
 getData().then(()=>{
-    
+    console.log('data fetch success')
     execSync('git add .')
     execSync(`git commit -m "${date} data update"`)
     execSync('git push')
