@@ -60,13 +60,16 @@ function runBuilder() {
                 podcast.hosts.push(host.id)
             }
         }
-        podcasts.push(podcast)
+        if (podcast.hosts.length > 0){
+            podcasts.push(podcast)
+        }
     }
 
     hosts = hosts.sort((a,b) => a.podcasts.length < b.podcasts.length)
 
     updateHostsDisplay(hosts)
     updatePodcastsDisplay(podcasts)
+    createChart()
 }
 
 function updateHostsDisplay(hosts) {
@@ -105,9 +108,9 @@ function createPodcastDiv(podcast) {
 
     let headerButton = document.createElement("button")
     headerButton.className = "podcast-name accordion-button collapsed"
-    headerButton.innerHTML = '<div class="d-flex align-items-end gap-3">' +
+    headerButton.innerHTML = `<div><div class="podcast-date">${podcast.date}</div> <div class="d-flex align-items-end gap-3">` +
         `<div class="episode-number">${podcast.episodeNumber}</div><div class="episode-title">${podcast.title}</div>` +
-        "</div>"
+        "</div> </div>"
     headerButton.setAttribute('data-bs-toggle', "collapse")
     headerButton.setAttribute('data-bs-target', '#podcast-' + podcast.id)
 
@@ -121,7 +124,9 @@ function createPodcastDiv(podcast) {
 
     let body = document.createElement("div")
     body.className = "accordion-body"
-    body.innerHTML = `<div><b>Date:</b> ${podcast.date} </div>
+    body.innerHTML = `<div>
+    <div><a target="blank" href="https://youtube.com/results/?search_query=${podcast.title}">Find it on youtube</a></div>
+    <b>Date:</b> ${podcast.date} </div>
     <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostsString}</pre></div>`
 
     bodyContainer.appendChild(body)
@@ -152,4 +157,31 @@ function updateHostSelection(id) {
         console.log(podcastsFiltered.length)
     }
     updatePodcastsDisplay(podcastsFiltered)
+}
+
+function createChart(){
+    const ctx = document.getElementById('chart-canvas');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+          label: '# of Votes',
+          data: [[1,1], [2,3]],
+          borderWidth: 1
+        },{
+            label: '# of Votes',
+            data: [[1,3], [2,2]],
+            borderWidth: 1
+          }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
 }

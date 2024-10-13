@@ -10,9 +10,13 @@
 }
 
 .episode-title{
-    font-size: 1.25rem;
+    font-size: 1rem;
 }
 
 .accordion-button::after {
     background-image: unset !important;
   }
+.podcast-date{
+    font-size: .8rem;
+    color:rgb(85, 85, 85)
+}

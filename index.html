@@ -7,16 +7,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
     crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body class="bg-body-tertiary">
     
     <div class="container">
         
         <div class="row">
-            <div class="col-12 col-lg-4"></div>
-            <div id="hosts" class="col-12 col-lg-4"></div>
-            <div id="podcasts" class="col-12 col-lg-4"></div>
+            <div class="col-12 col-lg-4">
+                <input type="range" id="range" width="100%"/>
+                <canvas id="chart-canvas"></canvas>
+            </div>
+            <div  class="col-12 col-lg-4">
+                <div class="fs-2 border-bottom mb-2">
+                    Hosts
+                </div>
+                <div id="hosts"></div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="fs-2 border-bottom mb-2">
+                    Podcasts
+                </div>
+                <div id="podcasts" ></div>
+            </div>
         </div>
     </div>
     <script src="main.js"></script>
