@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -15,10 +16,11 @@
     <div class="container">
 
         <div class="row">
-            <div id="chart-column" class="col-12 col-lg-4">
+            <div id="chart-column" class="col-12">
                 <div class="d-flex justify-content-between">
                     <input type="range" id="range" width="100%" />
-                    <button onClick="toggleBigMode()" class="btn btn-primary d-none d-xl-block">big mode</button>
+                    <!-- <button onClick="toggleBigMode()" class="btn btn-primary d-none d-xl-block">teeny mode</button> -->
+                     <input type="number" onchange="updateWindowSize(this)"></input>
                 </div>
                 <canvas id="chart-canvas"></canvas>
             </div>

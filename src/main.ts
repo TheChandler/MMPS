@@ -24,7 +24,12 @@ interface podcast {
 let hosts: host[] = []
 let podcasts: podcast[] = []
 let selectedHosts = []
-fetch('responseFiles/latest_response.json')
+let selectedHostsForGraph = [];
+
+let calculatedData = []
+let chart: any;
+
+fetch('dataFiles/latest_response.json')
     .then((response) => {
         response.json()
             .then(j => {
@@ -41,8 +46,15 @@ function run() {
     updateHostsDisplay(hosts)
     updatePodcastsDisplay(podcasts)
     createChart()
+    updateChart(20)
     updateSlider()
 }
+function updateWindowSize(e){
+    console.log(e)
+    updateChart(parseInt(e.value))
+    
+}
+
 function populateData(rows) {
     for (const [index, rowData] of rows.entries()) {
         if (!rowData || rowData[3] == undefined || rowData[3] == '') {
@@ -103,7 +115,7 @@ function updateHostsDisplay(hosts) {
         newDiv.className = `host-container card fs-3 mb-2`;
 
         newDiv.innerHTML = "<div class='row g-0'>" +
-            `<div class="host-name col p-2">${host.name}</div><div class="host-appearances col-4 bg-secondary text-white rounded-end text-center align-content-center">${host.podcasts.length}</div>` +
+            `<div class="host-name col p-2">${host.name}</div><div class="host-appearances col-4 bg-secondary text-white rounded-end text-end align-content-center pe-5">${host.podcasts.length}<i class="bi bi-square ms-3"/></div>` +
             "</div>"
         div.appendChild(newDiv)
         // console.log("appended", newDiv)
@@ -184,16 +196,14 @@ function updateHostSelection(id) {
     updatePodcastsDisplay(podcastsSorted)
 }
 
-function createChart() {
+function createChart(){
     const ctx = document.getElementById('chart-canvas');
-    let labels = podcasts.map(p => p.dateString)
-
     //@ts-ignore
-    new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
-            datasets: getDataForDisplay()
+            labels: [],
+            datasets: []
         },
         options: {
             scales: {
@@ -203,6 +213,19 @@ function createChart() {
             }
         }
     });
+}
+function updateChart(windowSize) {
+    
+    let labels = podcasts.map(p => p.dateString)
+
+    console.log(windowSize)
+    createLineDatasets(windowSize)
+    chart.data = {
+        labels: labels,
+        datasets: getDataForDisplay()
+    }
+    chart.update();
+    
 }
 
 function getRangeOfDates() {
@@ -218,7 +241,7 @@ interface chartData {
     currentScore: number[];
 }
 function getDataForDisplay() {
-    let dataset = createLineDatasets(8)
+    let dataset = calculatedData;
     let selectedHosts = [
         'Ben Hanson',
         "Sarah Podzorski",
@@ -245,13 +268,22 @@ function createLineDatasets(windowTarget: number) {
             if (host.currentScore.length > window){
                 host.currentScore.shift()
             }
-            runningCounts[host.id].data.push([index, sumArray(host.currentScore) / window])
+            host.data.push([index, (sumArray(host.currentScore) / window)])
             if (host.label == 'Sarah Podzorski') {
-                console.log(host.currentScore, podcast.hosts.includes(host.id), )
+                console.log(podcast.dateString, host.currentScore, sumArray(host.currentScore)/window, podcast.hosts.includes(host.id) )
+                if (podcast.hosts.includes(host.id)){
+                    console.log(host.data[host.data.length-1])
+                    console.log(runningCounts[host.id])
+                }
+
+            }
+            if (podcast.hosts.includes(host.id) && host.currentScore[host.currentScore.length-1] != 1 ){
+                console.error("Something is wrong here")
             }
         }
     }
-
+    // console.log(runningCounts)
+    calculatedData = runningCounts
     return runningCounts
 
 }
