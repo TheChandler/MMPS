@@ -24,7 +24,7 @@ async function getData() {
     
 
 //    fs.writeFileSync('./responseFiles/' + date + "_response.json", JSON.stringify(body));
-    fs.writeFileSync("./responseFiles/latest_response.json", JSON.stringify(body))
+    fs.writeFileSync("./dataFiles/latest_response.json", JSON.stringify(body))
 
 
 }
