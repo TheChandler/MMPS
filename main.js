@@ -1,4 +1,45 @@
-console.log('test');
+function createChart() {
+    const ctx = document.getElementById('chart-canvas');
+    //@ts-ignore
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: []
+        },
+        options: {
+            scales: {
+                y: {
+                    ticks: {
+                        format: {
+                            style: 'percent'
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+function recalculateData() {
+    createLineDatasets(windowSize);
+    updateChart();
+}
+function getDataForDisplay() {
+    let dataset = calculatedData;
+    dataset = dataset.map(ds => (Object.assign(Object.assign({}, ds), { data: ds.data.slice(-xAxisSize, endEpisode) })));
+    console.log(dataset);
+    return dataset.filter(d => selectedHosts.some(sh => sh == d.id));
+}
+function updateChart() {
+    console.log("update chart?");
+    let labels = podcasts.map(p => p.dateString);
+    labels = labels.slice(-xAxisSize, endEpisode);
+    chart.data = {
+        labels: labels,
+        datasets: getDataForDisplay()
+    };
+    chart.update();
+}
 let json = { values: [] };
 function setJson(value) {
     json = value;
@@ -9,6 +50,25 @@ let selectedHosts = [];
 let selectedHostsForGraph = [];
 let calculatedData = [];
 let chart;
+let windowSize = parseInt(document.getElementById('week-amount').value);
+let xAxisSize = parseInt(document.getElementById('x-axis').value);
+let endEpisode = parseInt(document.getElementById('range').value);
+;
+let sortDescending = true;
+let colors = [
+    '#e67a57',
+    '#4697c3',
+    '#953d3d',
+    '#f187bd',
+    '#8896fd',
+    '#a0b810',
+    '#f9c023',
+    '#511d91',
+    '#40f717',
+    '#a51bad',
+    '#ee2f46',
+    '#5cf99c'
+];
 fetch('dataFiles/latest_response.json')
     .then((response) => {
     response.json()
@@ -24,12 +84,9 @@ function run() {
     updateHostsDisplay(hosts);
     updatePodcastsDisplay(podcasts);
     createChart();
-    updateChart(20);
+    recalculateData();
     updateSlider();
-}
-function updateWindowSize(e) {
-    console.log(e);
-    updateChart(parseInt(e.value));
+    updateXAxisInputElement();
 }
 function populateData(rows) {
     for (const [index, rowData] of rows.entries()) {
@@ -57,26 +114,32 @@ function populateData(rows) {
         }
         podcasts = podcasts.sort((a, b) => a.date > b.date ? 1 : -1);
     }
+    const defaultHosts = ['ben hanson', 'jacob geller', 'sarah podzorski', 'kyle hilliard', 'jeff marchiafava', 'leo vader', 'janet garcia', 'suriel vazquez', 'kelsey lewin', 'haley maclean'];
+    selectedHostsForGraph = hosts
+        .filter(h => defaultHosts.some(dh => normalizeName(dh) == h.nameSearch))
+        .map(h => h.id);
 }
 function getOrAddHostId(hostName) {
-    let nameSearch = hostName.trim().replace(/[\W_]+/g, "").toLowerCase();
-    let index = hosts.findIndex(h => h.nameSearch == nameSearch);
+    let index = getHostId(hostName);
     if (index == -1) {
         index = hosts.length;
         hosts.push({
             id: index,
             name: hostName,
-            nameSearch: nameSearch,
-            podcasts: []
+            nameSearch: normalizeName(hostName),
+            podcasts: [],
+            color: colors[index % colors.length]
         });
     }
     return index;
 }
-function updateSlider() {
-    let max = getRangeOfDates();
-    let range = document.getElementById('range');
-    range.setAttribute('max', max.toString());
-    range.setAttribute('value', max.toString());
+function getHostId(hostName) {
+    let nameSearch = normalizeName(hostName);
+    return hosts.findIndex(h => h.nameSearch == nameSearch);
+}
+function normalizeName(name) {
+    return name.trim().replace(/[\W_]+/g, "").toLowerCase();
+    ;
 }
 function updateHostsDisplay(hosts) {
     const div = document.getElementById("hosts");
@@ -84,9 +147,10 @@ function updateHostsDisplay(hosts) {
         let newDiv = document.createElement('div');
         newDiv.setAttribute("onclick", `updateHostSelection(${host.id})`);
         newDiv.id = `host-${host.id}`;
-        newDiv.className = `host-container card fs-3 mb-2`;
+        newDiv.className = `host-container card fs-3 mb-2 pointer`;
         newDiv.innerHTML = "<div class='row g-0'>" +
-            `<div class="host-name col p-2">${host.name}</div><div class="host-appearances col-4 bg-secondary text-white rounded-end text-end align-content-center pe-5">${host.podcasts.length}<i class="bi bi-square ms-3"/></div>` +
+            `<div class="host-name col p-2 ms-2">${host.name}</div>` +
+            `<div class="host-appearances col-4 bg-secondary text-white rounded-end text-center align-content-center">${host.podcasts.length}</div>` +
             "</div>";
         div.appendChild(newDiv);
         // console.log("appended", newDiv)
@@ -96,7 +160,8 @@ function updatePodcastsDisplay(podcasts) {
     const div = document.getElementById("podcasts");
     div.innerHTML = '';
     div.className = "accordion accordion-flush col";
-    for (let podcast of podcasts) {
+    let orderedPodcasts = podcasts.toSorted((a, b) => (a.date < b.date == sortDescending) ? 1 : -1);
+    for (let podcast of orderedPodcasts) {
         // console.log(podcast)
         let newDiv = createPodcastDiv(podcast);
         div.appendChild(newDiv);
@@ -134,69 +199,16 @@ function createPodcastDiv(podcast) {
     newDiv.appendChild(bodyContainer);
     return newDiv;
 }
-function updateHostSelection(id) {
-    console.log("udpating host selected");
-    console.log("includes", selectedHosts, id);
-    document.getElementById(`host-${id}`).classList.toggle("selected-item");
-    if (selectedHosts.includes(id)) {
-        selectedHosts = selectedHosts.filter(sh => sh != id);
-    }
-    else {
-        selectedHosts.push(id);
-    }
-    let podcastsFiltered = podcasts.filter(p => true);
-    for (const hostId of selectedHosts) {
-        console.log(podcastsFiltered.length, hostId);
-        console.log(podcastsFiltered);
-        podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId));
-        console.log(podcastsFiltered, podcastsFiltered.length);
-    }
-    let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1; });
-    updatePodcastsDisplay(podcastsSorted);
-}
-function createChart() {
-    const ctx = document.getElementById('chart-canvas');
-    //@ts-ignore
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: []
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
-function updateChart(windowSize) {
-    let labels = podcasts.map(p => p.dateString);
-    console.log(windowSize);
-    createLineDatasets(windowSize);
-    chart.data = {
-        labels: labels,
-        datasets: getDataForDisplay()
-    };
-    chart.update();
+function updateHostGraphSelection(id) {
+    let icon = document.querySelector(`#host-${id} i`);
+    icon.classList.toggle('bi-square');
+    icon.classList.toggle('bi-x-square-fill');
 }
 function getRangeOfDates() {
     return podcasts.length;
 }
-function getDataForDisplay() {
-    let dataset = calculatedData;
-    let selectedHosts = [
-        'Ben Hanson',
-        "Sarah Podzorski",
-        "Jeff Marchiafava",
-        "Jacob Geller"
-    ];
-    return dataset.filter(d => selectedHosts.some(sh => sh == d.label));
-}
 function createLineDatasets(windowTarget) {
-    let runningCounts = hosts.map(h => ({ id: h.id, label: h.name, data: [], borderWidth: 1, currentScore: [] }));
+    let runningCounts = hosts.map(h => ({ id: h.id, label: h.name, data: [], borderWidth: 1, currentScore: [], borderColor: h.color, backgroundColor: h.color }));
     let window = 0;
     for (let [index, podcast] of podcasts.entries()) {
         //grow window until it reaches target size. could alternatively use index?
@@ -237,4 +249,56 @@ function toggleBigMode() {
     column.classList.toggle('col-lg-4');
     let button = document.querySelector('#chart-column .btn');
     button.textContent = button.textContent == 'big mode' ? 'teeny mode' : 'big mode';
+}
+function updateWindowSize(e) {
+    windowSize = parseInt(e.value);
+    recalculateData();
+}
+function sliderChanged(e) {
+    endEpisode = parseInt(e.value);
+    updateChart();
+}
+function changeSortDirection() {
+    let icon = document.querySelector('#sort-direction');
+    icon.classList.toggle("bi-arrow-down");
+    icon.classList.toggle("bi-arrow-up");
+    sortDescending = !sortDescending;
+    updatePodcastsDisplay(podcasts);
+}
+function updateXAxis(e) {
+    xAxisSize = parseInt(e.value);
+    console.log(xAxisSize);
+    updateChart();
+}
+function updateSlider() {
+    let max = getRangeOfDates();
+    let range = document.getElementById('range');
+    range.setAttribute('max', max.toString());
+    range.setAttribute('value', max.toString());
+    endEpisode = max;
+}
+function updateXAxisInputElement() {
+    let max = getRangeOfDates();
+    document.getElementById('x-axis').setAttribute('value', max.toString());
+}
+function updateHostSelection(id) {
+    console.log("udpating host selected");
+    console.log("includes", selectedHosts, id);
+    document.getElementById(`host-${id}`).classList.toggle("selected-item");
+    if (selectedHosts.includes(id)) {
+        selectedHosts = selectedHosts.filter(sh => sh != id);
+    }
+    else {
+        selectedHosts.push(id);
+    }
+    let podcastsFiltered = podcasts.filter(p => true);
+    for (const hostId of selectedHosts) {
+        console.log(podcastsFiltered.length, hostId);
+        console.log(podcastsFiltered);
+        podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId));
+        console.log(podcastsFiltered, podcastsFiltered.length);
+    }
+    let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1; });
+    updatePodcastsDisplay(podcastsSorted);
+    updateChart();
 }

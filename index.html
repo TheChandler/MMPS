@@ -7,20 +7,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-body-tertiary">
-
     <div class="container">
 
+        <div class="d-flex justify-content-between mb-3">
+            <div>
+                <h1>Podcast stats</h1>
+            </div>
+            <div class="pointer">
+                <a data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <i class="fs-2 bi bi-info-circle"></i>
+                </a>
+            </div>
+        </div>
         <div class="row">
             <div id="chart-column" class="col-12">
                 <div class="d-flex justify-content-between">
-                    <input type="range" id="range" width="100%" />
+                    <input type="range" id="range" width="100%" onchange="sliderChanged(this)"
+                        title="Chart end date (sorry this is confusing)" />
                     <!-- <button onClick="toggleBigMode()" class="btn btn-primary d-none d-xl-block">teeny mode</button> -->
-                     <input type="number" onchange="updateWindowSize(this)"></input>
+                    <span title="The number of episodes the x-axis will span">x-axis size:
+                        <input id="x-axis" type="number" onchange="updateXAxis(this)" value="300" min="1" />
+                    </span>
+                    <span title="The number of episodes to be averaged">Sampled weeks:
+                        <input id="week-amount" type="number" onchange="updateWindowSize(this)" value="52" min="1" />
+                    </span>
                 </div>
                 <canvas id="chart-canvas"></canvas>
             </div>
@@ -35,7 +50,8 @@
                     </div>
                     <div class="col-12 col-lg-6">
                         <div class="fs-2 border-bottom mb-2">
-                            Podcasts <span id="podcast-count" class="mx-3 fs-4"></span>
+                            Podcasts <span id="podcast-count" class="mx-3 fs-4"></span><i id="sort-direction"
+                                class="bi bi-arrow-down fs-5 pointer" onclick="changeSortDirection()"></i>
                         </div>
                         <div id="podcasts"></div>
                     </div>
@@ -45,3 +61,27 @@
     </div>
     <script src="main.js"></script>
 </body>
+<!-- Modal -->
+<div class="modal " id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Info</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Hey look at this site. It graphs the average appearance rate of any guest over time. <br />
+                For example if the Sampled weeks is set to 10 and Sarah has only been in 1 out of the last 10 episodes,
+                that would be 10%.
+                <br /><br />
+                Click on one of the "Hosts" to get started.
+                <br />
+                <br />
+                Not affiliated with <a href="/logo.jpg">Minnmax</a><br />
+                DJ Tommy 🍕, I stole your stats. Thank you
+
+
+            </div>
+        </div>
+    </div>
+</div>

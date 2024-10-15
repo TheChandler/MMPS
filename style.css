@@ -1,5 +1,5 @@
 .selected-item{
-    background-color: #FFFAB1;
+    background-color: #fec7aa;
 }
 
 .episode-number{
@@ -24,4 +24,8 @@
     min-width: 21rem;
     overflow-y: scroll;
     scrollbar-width: thin;
+}
+
+.pointer{
+    cursor: pointer;
 }

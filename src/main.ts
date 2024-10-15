@@ -1,24 +1,6 @@
-console.log('test')
-
 let json: { values: string[][] } = { values: [] }
 function setJson(value) {
     json = value
-}
-
-interface host {
-    id: number;
-    name: string;
-    nameSearch: string;
-    podcasts: number[];
-}
-interface podcast {
-    id: number;
-    episodeNumber: string;
-    title: string;
-    date: Date;
-    dateString: string;
-    hostsString: string;
-    hosts: number[];
 }
 
 let hosts: host[] = []
@@ -28,6 +10,26 @@ let selectedHostsForGraph = [];
 
 let calculatedData = []
 let chart: any;
+
+let windowSize: number = parseInt((document.getElementById('week-amount') as HTMLInputElement).value);
+let xAxisSize: number = parseInt((document.getElementById('x-axis') as HTMLInputElement).value);
+let endEpisode: number = parseInt((document.getElementById('range') as HTMLInputElement).value);;
+let sortDescending = true
+
+let colors = [
+    '#e67a57',
+    '#4697c3',
+    '#953d3d',
+    '#f187bd',
+    '#8896fd',
+    '#a0b810',
+    '#f9c023',
+    '#511d91',
+    '#40f717',
+    '#a51bad',
+    '#ee2f46',
+    '#5cf99c'
+]
 
 fetch('dataFiles/latest_response.json')
     .then((response) => {
@@ -46,14 +48,11 @@ function run() {
     updateHostsDisplay(hosts)
     updatePodcastsDisplay(podcasts)
     createChart()
-    updateChart(20)
+    recalculateData()
     updateSlider()
+    updateXAxisInputElement()
 }
-function updateWindowSize(e){
-    console.log(e)
-    updateChart(parseInt(e.value))
-    
-}
+
 
 function populateData(rows) {
     for (const [index, rowData] of rows.entries()) {
@@ -82,29 +81,33 @@ function populateData(rows) {
         podcasts = podcasts.sort((a, b) => a.date > b.date ? 1 : -1)
 
     }
+    const defaultHosts = ['ben hanson', 'jacob geller', 'sarah podzorski', 'kyle hilliard', 'jeff marchiafava', 'leo vader', 'janet garcia', 'suriel vazquez', 'kelsey lewin', 'haley maclean']
+    selectedHostsForGraph = hosts
+        .filter(h => defaultHosts.some(dh => normalizeName(dh) == h.nameSearch))
+        .map(h => h.id)
 }
 function getOrAddHostId(hostName) {
-    let nameSearch = hostName.trim().replace(/[\W_]+/g, "").toLowerCase();
-    let index = hosts.findIndex(h => h.nameSearch == nameSearch);
+    let index = getHostId(hostName);
     if (index == -1) {
         index = hosts.length;
         hosts.push({
             id: index,
             name: hostName,
-            nameSearch: nameSearch,
-            podcasts: []
+            nameSearch: normalizeName(hostName),
+            podcasts: [],
+            color: colors[index % colors.length]
         })
     }
     return index;
 }
-
-
-function updateSlider() {
-    let max = getRangeOfDates()
-    let range = document.getElementById('range');
-    range.setAttribute('max', max.toString());
-    range.setAttribute('value', max.toString())
+function getHostId(hostName) {
+    let nameSearch = normalizeName(hostName);
+    return hosts.findIndex(h => h.nameSearch == nameSearch);
 }
+function normalizeName(name) {
+    return name.trim().replace(/[\W_]+/g, "").toLowerCase();;
+}
+
 
 function updateHostsDisplay(hosts) {
     const div = document.getElementById("hosts")
@@ -112,10 +115,13 @@ function updateHostsDisplay(hosts) {
         let newDiv = document.createElement('div')
         newDiv.setAttribute("onclick", `updateHostSelection(${host.id})`);
         newDiv.id = `host-${host.id}`;
-        newDiv.className = `host-container card fs-3 mb-2`;
+        newDiv.className = `host-container card fs-3 mb-2 pointer`;
+
+
 
         newDiv.innerHTML = "<div class='row g-0'>" +
-            `<div class="host-name col p-2">${host.name}</div><div class="host-appearances col-4 bg-secondary text-white rounded-end text-end align-content-center pe-5">${host.podcasts.length}<i class="bi bi-square ms-3"/></div>` +
+            `<div class="host-name col p-2 ms-2">${host.name}</div>` +
+            `<div class="host-appearances col-4 bg-secondary text-white rounded-end text-center align-content-center">${host.podcasts.length}</div>` +
             "</div>"
         div.appendChild(newDiv)
         // console.log("appended", newDiv)
@@ -126,7 +132,9 @@ function updatePodcastsDisplay(podcasts) {
     const div = document.getElementById("podcasts")
     div.innerHTML = '';
     div.className = "accordion accordion-flush col"
-    for (let podcast of podcasts) {
+
+    let orderedPodcasts = podcasts.toSorted((a, b) => (a.date < b.date == sortDescending) ? 1 : -1)
+    for (let podcast of orderedPodcasts) {
         // console.log(podcast)
         let newDiv = createPodcastDiv(podcast)
         div.appendChild(newDiv)
@@ -172,60 +180,10 @@ function createPodcastDiv(podcast) {
     return newDiv;
 }
 
-function updateHostSelection(id) {
-    console.log("udpating host selected")
-    console.log("includes", selectedHosts, id)
-
-    document.getElementById(`host-${id}`).classList.toggle("selected-item")
-
-    if (selectedHosts.includes(id)) {
-        selectedHosts = selectedHosts.filter(sh => sh != id);
-    } else {
-        selectedHosts.push(id)
-    }
-
-
-    let podcastsFiltered = podcasts.filter(p => true)
-    for (const hostId of selectedHosts) {
-        console.log(podcastsFiltered.length, hostId)
-        console.log(podcastsFiltered)
-        podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId))
-        console.log(podcastsFiltered, podcastsFiltered.length)
-    }
-    let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1 })
-    updatePodcastsDisplay(podcastsSorted)
-}
-
-function createChart(){
-    const ctx = document.getElementById('chart-canvas');
-    //@ts-ignore
-    chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: []
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
-function updateChart(windowSize) {
-    
-    let labels = podcasts.map(p => p.dateString)
-
-    console.log(windowSize)
-    createLineDatasets(windowSize)
-    chart.data = {
-        labels: labels,
-        datasets: getDataForDisplay()
-    }
-    chart.update();
-    
+function updateHostGraphSelection(id) {
+    let icon = document.querySelector(`#host-${id} i`)
+    icon.classList.toggle('bi-square')
+    icon.classList.toggle('bi-x-square-fill')
 }
 
 function getRangeOfDates() {
@@ -233,27 +191,9 @@ function getRangeOfDates() {
     return podcasts.length
 }
 
-interface chartData {
-    label: string;
-    data: number[][];
-    borderWidth: number;
-    id: number;
-    currentScore: number[];
-}
-function getDataForDisplay() {
-    let dataset = calculatedData;
-    let selectedHosts = [
-        'Ben Hanson',
-        "Sarah Podzorski",
-        "Jeff Marchiafava",
-        "Jacob Geller"
-    ]
-    return dataset.filter(d => selectedHosts.some(sh => sh == d.label))
 
-}
 function createLineDatasets(windowTarget: number) {
-
-    let runningCounts: chartData[] = hosts.map(h => ({ id: h.id, label: h.name, data: [], borderWidth: 1, currentScore: [] }))
+    let runningCounts: chartData[] = hosts.map(h => ({ id: h.id, label: h.name, data: [], borderWidth: 1, currentScore: [], borderColor: h.color, backgroundColor: h.color }))
     let window = 0;
 
     for (let [index, podcast] of podcasts.entries()) {
@@ -262,22 +202,22 @@ function createLineDatasets(windowTarget: number) {
         for (let host of runningCounts) {
             if (podcast.hosts.includes(host.id)) {
                 host.currentScore.push(1)
-            }else{
+            } else {
                 host.currentScore.push(0)
             }
-            if (host.currentScore.length > window){
+            if (host.currentScore.length > window) {
                 host.currentScore.shift()
             }
             host.data.push([index, (sumArray(host.currentScore) / window)])
             if (host.label == 'Sarah Podzorski') {
-                console.log(podcast.dateString, host.currentScore, sumArray(host.currentScore)/window, podcast.hosts.includes(host.id) )
-                if (podcast.hosts.includes(host.id)){
-                    console.log(host.data[host.data.length-1])
+                console.log(podcast.dateString, host.currentScore, sumArray(host.currentScore) / window, podcast.hosts.includes(host.id))
+                if (podcast.hosts.includes(host.id)) {
+                    console.log(host.data[host.data.length - 1])
                     console.log(runningCounts[host.id])
                 }
 
             }
-            if (podcast.hosts.includes(host.id) && host.currentScore[host.currentScore.length-1] != 1 ){
+            if (podcast.hosts.includes(host.id) && host.currentScore[host.currentScore.length - 1] != 1) {
                 console.error("Something is wrong here")
             }
         }
@@ -287,15 +227,6 @@ function createLineDatasets(windowTarget: number) {
     return runningCounts
 
 }
-function sumArray(array: number[]){
-    return array.reduce((a, b)=> a+b, 0)
-}
-
-function toggleBigMode() {
-    console.log("bm toggle")
-    let column = document.getElementById("chart-column")
-    column.classList.toggle('col-lg-4')
-
-    let button = document.querySelector('#chart-column .btn')
-    button.textContent = button.textContent == 'big mode' ? 'teeny mode' : 'big mode'
+function sumArray(array: number[]) {
+    return array.reduce((a, b) => a + b, 0)
 }
