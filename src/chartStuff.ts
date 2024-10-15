@@ -11,6 +11,8 @@ function createChart() {
         options: {
             scales: {
                 y: {
+                    min:0,
+                    max:1,
                     ticks: {
                         format: {
                             style: 'percent'
