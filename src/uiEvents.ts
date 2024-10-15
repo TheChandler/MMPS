@@ -66,3 +66,15 @@ function updateHostSelection(id) {
 
     updateChart()
 }
+function toggleIsBar(e){
+    isBar = e.checked;
+    chart.destroy()
+    createChart()
+    updateChart()
+}
+function toggleIsStacked(e){
+    isStacked = e.checked;
+    chart.destroy()
+    createChart()
+    updateChart()
+}

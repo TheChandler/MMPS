@@ -2,7 +2,7 @@ function createChart() {
     const ctx = document.getElementById('chart-canvas');
     //@ts-ignore
     chart = new Chart(ctx, {
-        type: 'line',
+        type: isBar ? 'bar' : 'line',
         data: {
             labels: [],
             datasets: []
@@ -11,12 +11,16 @@ function createChart() {
             scales: {
                 y: {
                     min: 0,
-                    max: 1,
+                    max: isStacked ? null : 1,
                     ticks: {
                         format: {
                             style: 'percent'
                         }
-                    }
+                    },
+                    stacked: isBar && isStacked
+                },
+                x: {
+                    stacked: true
                 }
             }
         }
@@ -28,18 +32,25 @@ function recalculateData() {
 }
 function getDataForDisplay() {
     let dataset = calculatedData;
-    dataset = dataset.map(ds => (Object.assign(Object.assign({}, ds), { data: ds.data.slice(-xAxisSize, endEpisode) })));
+    dataset = dataset.map(ds => {
+        let data = ds.data.slice(Math.max(endEpisode - xAxisSize, 0), endEpisode);
+        if (isBar) {
+            data = data.map(array => array[1]);
+        }
+        return Object.assign(Object.assign({}, ds), { data: data });
+    });
     console.log(dataset);
     return dataset.filter(d => selectedHosts.some(sh => sh == d.id));
 }
 function updateChart() {
     console.log("update chart?");
     let labels = podcasts.map(p => p.dateString);
-    labels = labels.slice(-xAxisSize, endEpisode);
+    labels = labels.slice(Math.max(endEpisode - xAxisSize, 0), endEpisode);
     chart.data = {
         labels: labels,
         datasets: getDataForDisplay()
     };
+    chart.type = isBar ? 'bar' : 'line';
     chart.update();
 }
 let json = { values: [] };
@@ -57,6 +68,8 @@ let xAxisSize = parseInt(document.getElementById('x-axis').value);
 let endEpisode = parseInt(document.getElementById('range').value);
 ;
 let sortDescending = true;
+let isBar = false;
+let isStacked = false;
 let colors = [
     '#e67a57',
     '#4697c3',
@@ -302,5 +315,17 @@ function updateHostSelection(id) {
     }
     let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1; });
     updatePodcastsDisplay(podcastsSorted);
+    updateChart();
+}
+function toggleIsBar(e) {
+    isBar = e.checked;
+    chart.destroy();
+    createChart();
+    updateChart();
+}
+function toggleIsStacked(e) {
+    isStacked = e.checked;
+    chart.destroy();
+    createChart();
     updateChart();
 }

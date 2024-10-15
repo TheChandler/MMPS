@@ -29,6 +29,9 @@
                 <div class="d-flex justify-content-between">
                     <input type="range" id="range" width="100%" onchange="sliderChanged(this)"
                         title="Chart end date (sorry this is confusing)" />
+                        
+                        <label> Barchart <input type="checkbox" onchange="toggleIsBar(this)" /></label>
+                        <label> Stacked barchart <input type="checkbox" onchange="toggleIsStacked(this)" /></label>
                     <!-- <button onClick="toggleBigMode()" class="btn btn-primary d-none d-xl-block">teeny mode</button> -->
                     <span title="The number of episodes the x-axis will span">x-axis size:
                         <input id="x-axis" type="number" onchange="updateXAxis(this)" value="300" min="1" />

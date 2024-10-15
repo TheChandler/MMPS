@@ -15,6 +15,8 @@ let windowSize: number = parseInt((document.getElementById('week-amount') as HTM
 let xAxisSize: number = parseInt((document.getElementById('x-axis') as HTMLInputElement).value);
 let endEpisode: number = parseInt((document.getElementById('range') as HTMLInputElement).value);;
 let sortDescending = true
+let isBar: boolean = false;
+let isStacked: boolean = false;
 
 let colors = [
     '#e67a57',
