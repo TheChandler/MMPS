@@ -32,12 +32,11 @@ execSync('git pull')
 getData().then(()=>{
     console.log('data fetch success')
     execSync('git add .')
-    execSync(`git commit -m "${date} data update"`,
-	(error, stdout, stderr)=>{
-		if (error){ 
-			console.log("nothing to commit");
-		} else {
-			execSync('git push');
-		}
-	}).catch(()=>console.log("nothing to commit?")); 
+
+    try {
+       execSync(`git commit -m "${date} data update"`)
+       execSync('git push');
+	} catch (e){  
+		console.log("Nothing to commit");
+	}
 })
