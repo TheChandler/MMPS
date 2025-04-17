@@ -39,5 +39,5 @@ getData().then(()=>{
 		} else {
 			execSync('git push');
 		}
-	})
+	}).catch(()=>console.log("nothing to commit?")); 
 })
