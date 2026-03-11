@@ -53,9 +53,9 @@ function updateChart() {
     chart.type = isBar ? 'bar' : 'line';
     chart.update();
 }
-let json = { values: [] };
+let unformattedPodcasts;
 function setJson(value) {
-    json = value;
+    unformattedPodcasts = value;
 }
 let hosts = [];
 let podcasts = [];
@@ -84,7 +84,7 @@ let colors = [
     '#ee2f46',
     '#5cf99c'
 ];
-fetch('dataFiles/latest_response.json')
+fetch('dataFiles/episode_list.json')
     .then((response) => {
     response.json()
         .then(j => {
@@ -93,8 +93,7 @@ fetch('dataFiles/latest_response.json')
     });
 });
 function run() {
-    let data = json.values;
-    populateData(data.slice(1));
+    populateData(unformattedPodcasts);
     hosts = hosts.sort((a, b) => a.podcasts.length < b.podcasts.length ? 1 : -1);
     updateHostsDisplay(hosts);
     updatePodcastsDisplay(podcasts);
@@ -103,28 +102,24 @@ function run() {
     updateSlider();
     updateXAxisInputElement();
 }
-function populateData(rows) {
-    for (const [index, rowData] of rows.entries()) {
-        if (!rowData || rowData[3] == undefined || rowData[3] == '') {
-            continue;
-        }
+function populateData(episodes) {
+    for (const [index, episode] of episodes.entries()) {
         let podcast = {
             id: index,
-            episodeNumber: rowData[0],
-            title: rowData[1],
-            date: new Date(rowData[2]),
-            dateString: rowData[2],
-            hostsString: rowData[3],
-            hosts: []
+            episodeNumber: episode.number,
+            title: episode.title,
+            date: new Date(episode.date),
+            dateString: episode.date,
+            hostStrings: episode.hosts,
+            hostIds: [],
+            url: episode.url
         };
-        console.log(podcast);
-        for (let host of podcast.hostsString.split('\n')) {
-            let hostName = host.trim();
+        for (let hostName of podcast.hostStrings) {
             let hostIndex = getOrAddHostId(hostName);
             hosts[hostIndex].podcasts.push(index);
-            podcast.hosts.push(hostIndex);
+            podcast.hostIds.push(hostIndex);
         }
-        if (podcast.hosts.length > 0) {
+        if (podcast.hostIds.length > 0) {
             podcasts.push(podcast);
         }
         podcasts = podcasts.sort((a, b) => a.date > b.date ? 1 : -1);
@@ -208,7 +203,7 @@ function createPodcastDiv(podcast) {
     body.innerHTML = `<div>
     <div><a target="blank" href="https://youtube.com/results/?search_query=${podcast.title}">Find it on youtube</a></div>
     <!-- <b>Date:</b> ${podcast.dateString} </div> -->
-    <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostsString}</pre></div>`;
+    <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostIdsString}</pre></div>`;
     bodyContainer.appendChild(body);
     newDiv.appendChild(header);
     newDiv.appendChild(bodyContainer);
@@ -229,7 +224,7 @@ function createLineDatasets(windowTarget) {
         //grow window until it reaches target size. could alternatively use index?
         window += window < windowTarget ? 1 : 0;
         for (let host of runningCounts) {
-            if (podcast.hosts.includes(host.id)) {
+            if (podcast.hostIds.includes(host.id)) {
                 host.currentScore.push(1);
             }
             else {
@@ -240,13 +235,13 @@ function createLineDatasets(windowTarget) {
             }
             host.data.push([index, (sumArray(host.currentScore) / window)]);
             if (host.label == 'Sarah Podzorski') {
-                console.log(podcast.dateString, host.currentScore, sumArray(host.currentScore) / window, podcast.hosts.includes(host.id));
-                if (podcast.hosts.includes(host.id)) {
+                console.log(podcast.dateString, host.currentScore, sumArray(host.currentScore) / window, podcast.hostIds.includes(host.id));
+                if (podcast.hostIds.includes(host.id)) {
                     console.log(host.data[host.data.length - 1]);
                     console.log(runningCounts[host.id]);
                 }
             }
-            if (podcast.hosts.includes(host.id) && host.currentScore[host.currentScore.length - 1] != 1) {
+            if (podcast.hostIds.includes(host.id) && host.currentScore[host.currentScore.length - 1] != 1) {
                 console.error("Something is wrong here");
             }
         }
@@ -310,7 +305,7 @@ function updateHostSelection(id) {
     for (const hostId of selectedHosts) {
         console.log(podcastsFiltered.length, hostId);
         console.log(podcastsFiltered);
-        podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId));
+        podcastsFiltered = podcastsFiltered.filter(p => p.hostIds.includes(hostId));
         console.log(podcastsFiltered, podcastsFiltered.length);
     }
     let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1; });

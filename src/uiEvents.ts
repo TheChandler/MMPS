@@ -58,7 +58,7 @@ function updateHostSelection(id) {
     for (const hostId of selectedHosts) {
         console.log(podcastsFiltered.length, hostId)
         console.log(podcastsFiltered)
-        podcastsFiltered = podcastsFiltered.filter(p => p.hosts.includes(hostId))
+        podcastsFiltered = podcastsFiltered.filter(p => p.hostIds.includes(hostId))
         console.log(podcastsFiltered, podcastsFiltered.length)
     }
     let podcastsSorted = podcastsFiltered.sort((a, b) => { return b.date > a.date ? 1 : -1 })

@@ -4,6 +4,14 @@ interface podcast {
     title: string;
     date: Date;
     dateString: string;
-    hostsString: string;
-    hosts: number[];
+    hostStrings: string[];
+    hostIds: number[];
+    url: string;
+}
+interface unformattedPodcast {
+    number: string,
+    title: string,
+    date: string,
+    hosts: string[],
+    url: string
 }
