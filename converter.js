@@ -15,6 +15,7 @@ function convert(response) {
     }
 
     return {
+        id: crypto.randomUUID(),
         number: response[0],
         title: response[1],
         date: response[2],
