@@ -1,42 +1,73 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+body {
+  background-color: #fd9163;
+  padding-left: 3%;
+  padding-right: 3%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.cardHolder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .card {
-  padding: 2em;
+  /* border: 1px solid black; */
+  transition: all 0.3s ease-in-out;
+  border: 1rem solid #ffdca4;
+  cursor: pointer;
+  border-radius: 1.2rem;
+  background-color: #ffdca4;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+.cardInner{
+  padding: 10px;
+  background-color: #ffb47d;
+  width: calc(100% - 20px);
+  height:  calc(100% - 20px);
+  border-radius: .8rem;
 }
 
-.read-the-docs {
-  color: #888;
+.card.small {
+  width: 325px;
+  height: 200px;
+}
+
+.card.big {
+  width: 80vw;
+  height: 100vh;
+  padding: 30px;
+}
+
+.card.hidden {
+  height: 0px;
+  width: 0px;
+  padding: 0px;
+  overflow: hidden;
+  border: none;
+}
+
+.cardHosts {
+  background-color: #ffdca4;
+  padding: 10px;
+  border-radius: 1.2rem;
+}
+
+.cardDate {
+  font-size: small;
+  color: #000000BB;
+}
+
+.cardTitle {
+  font-size: large;
+  font-weight: bold;
+}
+
+.cardNumber {
+  display: inline-block;
+  font-size: medium;
+  color: #000000BB;
+  padding: .25rem .75rem;
+  border-radius: 1rem;
+  background-color: #ffdca4;
+  /* margin-bottom:1rem; */
 }

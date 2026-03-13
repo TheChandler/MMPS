@@ -32,21 +32,12 @@ app.post('/gitCommit', (req, res) => {
   execSync('node ../updateData.js')
 })
 
-// app.get('/', (req, res) => {
-//   const options = {
-//     root: path.join(__dirname, './')
-//   };
-//   res.sendFile('./my-app/dist/index.html', options)
-//})
-
 app.use(express.static(path.join(__dirname, './my-app/dist')));
-
 
 // For any other route, serve the React app's index.html
 app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, './my-app/dist', 'index.html'));
 });
-
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
