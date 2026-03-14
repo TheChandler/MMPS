@@ -9,6 +9,7 @@ const { exec, execSync } = require('node:child_process');
 const path = require('node:path');
 
 const dataPath = path.join(__dirname, '..', 'dataFiles', 'episode_list.json');
+const updateFunctionPath = path.join(__dirname, '..', 'updateData.js');
 
 app.use(express.json());
 
