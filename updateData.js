@@ -11,6 +11,7 @@ try {
     console.log(execSync('git add .'));
     console.log(execSync(`git commit -m "${date} data update"`));
     console.log(execSync('git push'));
+    console.log("done")
 } catch (e) {
     console.log("Nothing to commit");
 }
