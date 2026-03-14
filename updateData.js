@@ -1,14 +1,16 @@
-const fs = require('node:fs')
-const { exec, execSync } = require('node:child_process');
+const { execSync } = require('node:child_process');
 
 
 const date = new Date().toISOString().split("T")[0]
 
 try {
-    execSync('git pull')
-    execSync('git add .')
-    execSync(`git commit -m "${date} data update"`)
-    execSync('git push');
+    console.log(execSync('git add .'));
+    console.log(execSync('git stash'));
+    console.log(execSync('git pull'));
+    console.log(execSync('git stash pop'));
+    console.log(execSync('git add .'));
+    console.log(execSync(`git commit -m "${date} data update"`));
+    console.log(execSync('git push'));
 } catch (e) {
     console.log("Nothing to commit");
 }

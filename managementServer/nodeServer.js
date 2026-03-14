@@ -14,23 +14,67 @@ app.get('/all', (req, res) => {
   res.json(JSON.parse(json))
 })
 
-app.post('/', (req, res) => {
+app.delete('/delete', (req, res) => {
   let body = req.body
   let json = JSON.parse(fs.readFileSync('dataFiles\\episode_list.json'));
 
+  if (!body.id || typeof body.id !== 'string') {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const updated = json.filter(episode => episode.id !== body.id);
+
+  fs.writeFileSync('dataFiles\\episode_list.json', JSON.stringify(updated));
+  res.json({ message: 'Episode deleted successfully' });
+
+})
+
+app.post('/save', (req, res) => {
+  let body = req.body
+  let json = JSON.parse(fs.readFileSync('dataFiles\\episode_list.json'));
+
+  if (body.id && typeof body.id !== 'string') {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+  if (!body.hosts || !Array.isArray(body.hosts)) {
+    return res.status(400).json({ error: 'Hosts should be an array of strings' });
+  }
+  if (typeof body?.url !== 'string') {
+    return res.status(400).json({ error: 'URL should be a string' });
+  }
+  if (typeof body?.date !== 'string') {
+    return res.status(400).json({ error: 'Date should be a string' });
+  }
+
   const updated = json.map(episode => {
     if (episode.id === body.id) {
-      return body;
+      console.log('found match', JSON.stringify(episode));
+
+      return {
+        ...body,
+      };
     }
     return episode;
   });
+
+  if (!body.id) {
+    body.id = crypto.randomUUID();
+    updated.unshift(body);
+  }
+
   fs.writeFileSync('dataFiles\\episode_list.json', JSON.stringify(updated));
-  res.json(updated);
+  res.json(body);
 })
 
-app.post('/gitCommit', (req, res) => {
-  execSync('node ../updateData.js')
+app.post('/publish', (req, res) => {
+  try {
+    console.log(execSync('node ./updateData.js').toString())
+    res.json({ message: 'Git commit successful' });
+  } catch {
+    res.status(500).json({ error: 'Git commit failed' });
+  }
 })
+
 
 app.use(express.static(path.join(__dirname, './my-app/dist')));
 
@@ -42,3 +86,4 @@ app.get('/{*splat}', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
+
