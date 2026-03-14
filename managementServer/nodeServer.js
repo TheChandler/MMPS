@@ -8,7 +8,7 @@ const fs = require('fs')
 const { exec, execSync } = require('node:child_process');
 const path = require('node:path');
 
-const dataPath = path.join(__dirname, 'dataFiles', 'episode_list.json');
+const dataPath = path.join(__dirname, '..', 'dataFiles', 'episode_list.json');
 
 app.use(express.json());
 
