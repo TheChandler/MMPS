@@ -2,21 +2,24 @@ const express = require('express')
 const app = express()
 const port = 3000
 
+
+
 const fs = require('fs')
 const { exec, execSync } = require('node:child_process');
 const path = require('node:path');
 
+const dataPath = path.join(__dirname, 'dataFiles', 'episode_list.json');
 
 app.use(express.json());
 
 app.get('/all', (req, res) => {
-  let json = fs.readFileSync('dataFiles\\episode_list.json');
+  let json = fs.readFileSync(dataPath);
   res.json(JSON.parse(json))
 })
 
 app.delete('/delete', (req, res) => {
   let body = req.body
-  let json = JSON.parse(fs.readFileSync('dataFiles\\episode_list.json'));
+  let json = JSON.parse(fs.readFileSync(dataPath));
 
   if (!body.id || typeof body.id !== 'string') {
     return res.status(400).json({ error: 'Invalid ID format' });
@@ -24,14 +27,14 @@ app.delete('/delete', (req, res) => {
 
   const updated = json.filter(episode => episode.id !== body.id);
 
-  fs.writeFileSync('dataFiles\\episode_list.json', JSON.stringify(updated));
+  fs.writeFileSync(__dirname + '/dataFiles/episode_list.json', JSON.stringify(updated));
   res.json({ message: 'Episode deleted successfully' });
 
 })
 
 app.post('/save', (req, res) => {
   let body = req.body
-  let json = JSON.parse(fs.readFileSync('dataFiles\\episode_list.json'));
+  let json = JSON.parse(fs.readFileSync(dataPath));
 
   if (body.id && typeof body.id !== 'string') {
     return res.status(400).json({ error: 'Invalid ID format' });
@@ -62,7 +65,7 @@ app.post('/save', (req, res) => {
     updated.unshift(body);
   }
 
-  fs.writeFileSync('dataFiles\\episode_list.json', JSON.stringify(updated));
+  fs.writeFileSync(dataPath, JSON.stringify(updated));
   res.json(body);
 })
 
