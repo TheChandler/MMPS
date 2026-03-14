@@ -28,7 +28,7 @@ app.delete('/delete', (req, res) => {
 
   const updated = json.filter(episode => episode.id !== body.id);
 
-  fs.writeFileSync(__dirname + '/dataFiles/episode_list.json', JSON.stringify(updated));
+  fs.writeFileSync(dataPath, JSON.stringify(updated));
   res.json({ message: 'Episode deleted successfully' });
 
 })

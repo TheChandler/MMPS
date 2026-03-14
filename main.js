@@ -198,12 +198,19 @@ function createPodcastDiv(podcast) {
     let bodyContainer = document.createElement("div");
     bodyContainer.id = 'podcast-' + podcast.id;
     bodyContainer.className = "accordion-collapse collapse";
+    let url = "";
+    if (podcast.url) {
+        url = podcast.url;
+    }
+    else {
+        url = `https://youtube.com/results/?search_query=${podcast.title}`;
+    }
     let body = document.createElement("div");
     body.className = "accordion-body";
     body.innerHTML = `<div>
-    <div><a target="blank" href="https://youtube.com/results/?search_query=${podcast.title}">Find it on youtube</a></div>
+    <div><a target="blank" href="${url}">Find it on youtube</a></div>
     <!-- <b>Date:</b> ${podcast.dateString} </div> -->
-    <div><b>Podcasters:</b> <pre class="ps-2">${podcast.hostIdsString}</pre></div>`;
+    <div><b>Podcasters:</b> <pre class="ps-2">${podcast === null || podcast === void 0 ? void 0 : podcast.hostStrings.join('\n ')}</pre></div>`;
     bodyContainer.appendChild(body);
     newDiv.appendChild(header);
     newDiv.appendChild(bodyContainer);
