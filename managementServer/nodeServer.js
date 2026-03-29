@@ -2,14 +2,16 @@ const express = require('express')
 const app = express()
 const port = 3000
 
-
-
 const fs = require('fs')
 const { exec, execSync } = require('node:child_process');
 const path = require('node:path');
 
 const dataPath = path.join(__dirname, '..', 'dataFiles', 'episode_list.json');
 const updateFunctionPath = path.join(__dirname, '..', 'updateData.js');
+
+const youtubeResponseCachePath = path.join(__dirname, '..', 'dataFiles', 'youtube_response_cache.json');
+
+const { getPlayListItems } = require('./youtubeApi.js')
 
 app.use(express.json());
 
@@ -78,6 +80,27 @@ app.post('/publish', (req, res) => {
     res.status(500).json({ error: 'Git commit failed' });
   }
 })
+
+
+app.get('/playlist', async (req, res) => {
+  //Read file from cache and send it
+  try {
+    let existingCache = JSON.parse(fs.readFileSync(youtubeResponseCachePath));
+    if (existingCache && existingCache.timestamp && (Date.now() - existingCache.timestamp < 24 * 60 * 60 * 1000)) {
+      res.json(existingCache);
+      return;
+    }
+  } catch {
+    console.log('No existing cache found');
+  }
+
+  //Fallback. Get new data
+  let response = await getPlayListItems()
+  response.timestamp = Date.now();
+  fs.writeFileSync(youtubeResponseCachePath, JSON.stringify(response));
+  res.json(response);
+})
+
 
 
 app.use(express.static(path.join(__dirname, './my-app/dist')));
