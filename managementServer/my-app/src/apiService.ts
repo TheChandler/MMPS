@@ -8,11 +8,11 @@ export async function getYoutubePlaylistItems() {
     return fetch('./playlist')
     .then(res => res.json())
     .then(data => {
-        if (!data || !data.data || !data.data.items) {
+        if (!data || !data.items) {
             return [];
         }
 
-        return data.data.items.map((item:any) =>{
+        return data.items.map((item:any) =>{
             return {
                 id: item.id,
                 description: item.snippet.description,
